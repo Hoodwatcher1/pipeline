@@ -1,0 +1,23 @@
+name: Build and Deploy
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  build-and-deploy:
+    runs-on: self-hosted
+    steps:
+      - name: Code auschecken
+        uses: actions/checkout@v3
+
+      - name: Docker Image bauen
+        run: docker build -t meinprojekt:latest .
+
+      - name: In k3s importieren
+        run: docker save meinprojekt:latest | sudo k3s ctr images import -
+
+      - name: In Kubernetes deployen
+        run: |
+          sudo kubectl rollout restart deployment/nginx-deployment
+          sudo kubectl rollout status deployment/nginx-deployment
